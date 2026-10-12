@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TEDxVIT Pune</title>
+<script>try { if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('js-intro'); } catch (e) {}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a dark "stage" that sticks while the page scrolls past it; a red spotlight follows the pointer,
+   a dot grid ripples under it, and one word in the headline rolls as you scroll. Single committed dark look. */
+:root {
+  --stage: #0b0a0a;
+  --ink: #f5f1ee;
+  --red: #e62b1e;
+  --ember: #ff7a5c;
+  --ash: #9a928e;
+  --line: #2b2726;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--stage); color: var(--ink); font-family: var(--font-display); }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+
+.track { position: relative; height: 320svh; }
+.stage {
+  position: sticky; top: env(safe-area-inset-top, 0px);
+  height: min(100svh, 800px); min-height: 600px;
+  overflow: hidden; background: var(--stage);
+  --mx: 38%; --my: 50%; --r: 420px; --va: .84;
+  touch-action: pan-y;
+}
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.veil {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: radial-gradient(circle var(--r) at var(--mx) var(--my),
+    rgba(11,10,10,0) 0%, rgba(11,10,10,0) 28%, rgba(11,10,10,var(--va)) 100%);
+}
+.glow {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2; mix-blend-mode: screen;
+  background: radial-gradient(circle calc(var(--r) * .7) at var(--mx) var(--my), rgba(230,43,30,.22), rgba(230,43,30,0) 70%);
+}
+
+.wrap {
+  position: relative; z-index: 1; height: 100%;
+  padding: 20px clamp(16px, 4vw, 56px) 28px;
+  display: grid; grid-template-rows: auto 1fr auto; gap: 16px;
+}
+nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; position: relative; z-index: 3; }
+.mark { font-weight: 800; font-stretch: 85%; letter-spacing: -.01em; font-size: 1.25rem; }
+.mark b { color: var(--red); font-weight: 900; }
+.mark span { font-weight: 400; color: var(--ash); margin-left: .35em; }
+.nav-links { display: flex; gap: clamp(14px, 3vw, 32px); font-family: var(--font-mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ash); }
+.nav-links a { text-decoration: none; }
+.nav-links a:hover { color: var(--ink); }
+@media (max-width: 520px) { .nav-links a:nth-child(n+3) { display: none; } }
+
+.main { align-self: center; min-width: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ash); margin: 0 0 18px; }
+.eyebrow i { display: inline-block; width: 28px; height: 2px; background: var(--red); vertical-align: middle; margin-right: 12px; }
+
+h1 {
+  margin: 0; font-weight: 900; font-stretch: 78%;
+  font-size: clamp(2.2rem, 8.4vw, 7.4rem); line-height: .94; letter-spacing: -.02em; text-transform: uppercase;
+  text-wrap: balance;
+}
+.line { display: block; }
+.wslot { display: inline-grid; vertical-align: top; height: .98em; overflow: hidden; }
+.w {
+  grid-area: 1 / 1; white-space: nowrap; color: var(--red);
+  transform: translateY(105%); opacity: 0;
+  transition: transform .62s cubic-bezier(.2,.8,.2,1), opacity .4s ease;
+}
+.w.past { transform: translateY(-105%); opacity: 0; }
+.w.on { transform: none; opacity: 1; }
+
+.lede { max-width: 46ch; margin: 22px 0 0; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.5; color: #cfc8c4; font-weight: 400; }
+
+.bottom { position: relative; z-index: 3; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 32px; }
+.clock { min-width: 0; }
+.clock-label { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ash); margin: 0 0 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+.clock-label em { font-style: normal; color: var(--ember); }
+.digits { display: flex; align-items: baseline; gap: clamp(8px, 1.6vw, 18px); font-variant-numeric: tabular-nums; }
+.unit { display: flex; flex-direction: column; gap: 2px; }
+.unit strong { display: inline-block; font-weight: 800; font-stretch: 80%; font-size: clamp(1.9rem, 5vw, 3.2rem); line-height: 1; letter-spacing: -.01em; }
+.unit span { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ash); }
+.sep { font-weight: 300; font-size: clamp(1.6rem, 4vw, 2.6rem); color: var(--red); transform: translateY(-.15em); }
+
+.cta {
+  display: inline-flex; align-items: center; gap: 12px; text-decoration: none;
+  background: var(--red); color: #fff; font-weight: 700; font-stretch: 90%;
+  padding: 16px 24px; font-size: 1rem; letter-spacing: .01em;
+  transition: background .2s ease, transform .2s ease;
+}
+.cta:hover { background: var(--ember); transform: translateX(3px); }
+.cta svg { width: 18px; height: 18px; }
+
+.progress { position: absolute; right: clamp(16px, 3vw, 40px); top: 50%; transform: translateY(-50%); z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.progress span { width: 3px; height: 28px; background: var(--line); transition: background .3s ease, height .3s ease; }
+.progress span.on { background: var(--red); }
+.progress small { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .14em; color: var(--ash); writing-mode: vertical-rl; text-transform: uppercase; margin-top: 6px; }
+@media (max-width: 640px) { .progress { display: none; } }
+
+.strip { overflow: hidden; border-block: 1px solid var(--line); padding-block: 18px; background: var(--stage); }
+.strip-inner { display: flex; width: max-content; animation: slide 46s linear infinite; }
+.strip-inner span { font-weight: 800; font-stretch: 78%; text-transform: uppercase; font-size: clamp(1.4rem, 3.4vw, 2.4rem); letter-spacing: -.01em; padding-right: 28px; white-space: nowrap; }
+.strip-inner span.x { color: var(--red); font-weight: 400; }
+@keyframes slide { to { transform: translateX(-50%); } }
+
+footer { padding: 22px clamp(16px, 4vw, 56px) 36px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; font-family: var(--font-mono); font-size: .7rem; letter-spacing: .06em; color: var(--ash); }
+
+/* ---- Hero intro: an idea drops, "Small talk" is knocked off, "Ideas" spreads out ---- */
+.swap { position: relative; display: inline-block; }
+.swap .old { display: none; }
+.js-intro .swap .old { display: inline-block; white-space: nowrap; }
+.js-intro .swap .new { position: absolute; left: 0; top: 0; white-space: nowrap; }
+.ch { display: inline-block; white-space: pre; will-change: transform; }
+.js-intro .stage { --va: .35; }
+.idea-dot { position: absolute; left: 0; top: 0; z-index: 4; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--red); box-shadow: 0 0 24px 6px rgba(230,43,30,.7), 0 -46px 34px 0 rgba(230,43,30,.35); pointer-events: none; display: none; }
+.ring { position: absolute; left: 0; top: 0; z-index: 4; border-radius: 50%; border: 3px solid var(--red); pointer-events: none; display: none; }
+.crumb { position: absolute; left: 0; top: 0; z-index: 4; width: 7px; height: 7px; pointer-events: none; }
+.nav-links .replay { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+.nav-links .replay:hover { color: var(--ink); }
+.nav-links .replay:disabled { opacity: .4; cursor: default; }
+.nav-links .replay:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+
+/* ---- Stage effects: curtains, follow-spot beam, rolling digits ---- */
+.beam {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none; mix-blend-mode: screen;
+  background: linear-gradient(to bottom, rgba(255,226,214,0) 0%, rgba(255,226,214,.13) 100%);
+  clip-path: polygon(48% 0, 52% 0, 60% 62%, 40% 62%);
+}
+.curtain {
+  position: absolute; top: 0; bottom: 0; width: 50.6%; z-index: 6; pointer-events: none; display: none;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,.5), rgba(0,0,0,0) 28%, rgba(0,0,0,0) 72%, rgba(0,0,0,.55)),
+    repeating-linear-gradient(90deg, #8c1810 0 26px, #c1231a 26px 52px, #8c1810 52px 78px);
+  will-change: transform;
+}
+.curtain.l { left: 0; box-shadow: 8px 0 30px rgba(0,0,0,.6); }
+.curtain.r { right: 0; box-shadow: -8px 0 30px rgba(0,0,0,.6); }
+.js-intro .curtain { display: block; }
+.roll { animation: roll .38s cubic-bezier(.2,.9,.3,1); }
+@keyframes roll { 0% { transform: translateY(-55%); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+/* ---- Collect the ideas: point-and-click section ---- */
+[hidden] { display: none !important; }
+.collect { padding-block: clamp(48px, 8vw, 96px); border-bottom: 1px solid var(--line); }
+.collect-wrap { max-width: 1000px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 56px); }
+.collect h2 {
+  margin: 0 0 22px; font-weight: 900; font-stretch: 78%; text-transform: uppercase;
+  font-size: clamp(2.2rem, 7vw, 4.2rem); line-height: .95; letter-spacing: -.02em;
+}
+.collect h2 b { color: var(--red); font-weight: 900; }
+
+.scene {
+  position: relative; height: clamp(320px, 52vw, 400px); overflow: hidden; border: 1px solid var(--line);
+  background:
+    radial-gradient(circle, rgba(245,241,238,.15) 1.2px, transparent 1.7px) 0 0 / 30px 30px,
+    radial-gradient(circle at 30% 40%, #2a1210, var(--stage) 75%);
+}
+.orb {
+  position: absolute; left: var(--x); top: var(--y); width: 68px; height: 68px; margin: -34px 0 0 -34px;
+  display: grid; place-items: center; padding: 0; cursor: pointer;
+  border-radius: 50%; border: 2px solid var(--red); background: #1a1514; color: var(--ink);
+  box-shadow: 0 0 24px rgba(230,43,30,.33);
+  animation: bob 4s ease-in-out infinite; animation-delay: var(--d);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.orb svg { width: 30px; height: 30px; }
+.orb:hover, .orb:focus-visible { border-color: var(--ember); box-shadow: 0 0 36px rgba(255,122,92,.55); }
+.orb.gone { animation: none; transform: scale(0); opacity: 0; pointer-events: none; transition: transform .35s ease-in, opacity .35s ease-in; }
+@keyframes bob { 0%, 100% { transform: translateY(-6px); } 50% { transform: translateY(6px); } }
+
+.dialogue {
+  margin: 12px 0; padding: 14px 16px; min-height: 52px; background: #110f0f; border-left: 3px solid var(--red);
+  font-family: var(--font-mono); font-size: .9rem; line-height: 1.45;
+}
+.inv-label { margin: 18px 0 8px; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ash); }
+.inv { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.slot { min-height: 92px; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: #110f0f; border: 1px solid var(--line); padding: 8px 4px; }
+.slot.full { border-color: var(--red); animation: pop .45s cubic-bezier(.2,.9,.3,1.4); }
+.slot .mini { width: 40px; height: 40px; border-radius: 50%; background: var(--red); display: grid; place-items: center; box-shadow: 0 0 18px rgba(230,43,30,.4); }
+.slot .mini svg { width: 20px; height: 20px; }
+.slot .nm { font-size: .75rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes pop { 0% { transform: scale(.6); } 100% { transform: scale(1); } }
+
+button.cta { border: 0; font-family: inherit; cursor: pointer; }
+.cta.block { display: flex; width: 100%; justify-content: center; }
+.cta[disabled], .cta[disabled]:hover { background: var(--line); color: var(--ash); cursor: not-allowed; transform: none; }
+
+.reveal { padding: 22px; border: 1px solid var(--red); background: rgba(230,43,30,.1); display: flex; flex-direction: column; gap: 8px; }
+.reveal .tag { margin: 0; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--red); }
+.reveal .big { margin: 0; font-weight: 900; font-stretch: 80%; font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.05; text-transform: uppercase; }
+.reveal .sub { margin: 0 0 8px; color: var(--ash); line-height: 1.5; }
+.reveal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.ghost { background: none; border: 0; padding: 8px 0; color: var(--ash); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .06em; cursor: pointer; text-decoration: underline; }
+.ghost:hover { color: var(--ink); }
+.ghost:focus-visible, .orb:focus-visible, .cta:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; }
+  .slot.full { animation: none; }
+  .roll { animation: none; }
+  .curtain { display: none !important; }
+  .strip-inner { animation: none; }
+  .w { transition: none; }
+  .veil { background: radial-gradient(circle var(--r) at var(--mx) var(--my), rgba(11,10,10,0) 0%, rgba(11,10,10,0) 40%, rgba(11,10,10,.4) 100%); }
+}
+</style>
+</head>
+<body>
+
+<section class="track" id="track">
+  <div class="stage" id="stage">
+    <canvas id="grid" aria-hidden="true"></canvas>
+    <div class="idea-dot" id="ideaDot" aria-hidden="true"></div>
+    <div class="ring" id="ring" aria-hidden="true"></div>
+    <div class="curtain l" id="curtainL" aria-hidden="true"></div>
+    <div class="curtain r" id="curtainR" aria-hidden="true"></div>
+    <div class="veil" aria-hidden="true"></div>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="beam" id="beam" aria-hidden="true"></div>
+
+    <div class="wrap">
+      <nav>
+        <div class="mark"><b>TEDx</b>VIT<span>Pune</span></div>
+        <div class="nav-links">
+          <a href="#speakers">Speakers</a>
+          <a href="#schedule">Schedule</a>
+          <a href="#team">Team</a>
+          <a href="#register">Register</a>
+          <button type="button" class="replay" id="replay">Replay</button>
+        </div>
+      </nav>
+
+      <div class="main">
+        <p class="eyebrow"><i></i>TEDxVIT Pune &middot; 2026</p>
+        <h1 aria-label="Ideas worth spreading">
+          <span class="line" aria-hidden="true"><span class="swap"><span class="old" id="old" data-text="Small talk">Small talk</span><span class="new" id="new" data-text="Ideas">Ideas</span></span></span>
+          <span class="line" aria-hidden="true">worth <span class="wslot">
+            <span class="w on">spreading</span>
+            <span class="w">questioning</span>
+            <span class="w">building</span>
+            <span class="w">challenging</span>
+            <span class="w">spreading</span>
+          </span></span>
+        </h1>
+        <p class="lede">Talks, performances and conversations from people with an idea they can't keep to themselves. Move your cursor to light the stage. Click for applause.</p>
+      </div>
+
+      <div class="bottom">
+        <div class="clock">
+          <p class="clock-label">Stage opens in <em>sample date, set it in the script</em></p>
+          <div class="digits" role="timer" aria-live="off">
+            <div class="unit"><strong id="cd-d">00</strong><span>days</span></div><div class="sep">:</div>
+            <div class="unit"><strong id="cd-h">00</strong><span>hours</span></div><div class="sep">:</div>
+            <div class="unit"><strong id="cd-m">00</strong><span>min</span></div><div class="sep">:</div>
+            <div class="unit"><strong id="cd-s">00</strong><span>sec</span></div>
+          </div>
+        </div>
+        <a class="cta" href="#register">Register interest
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="progress" aria-hidden="true">
+      <span class="on"></span><span></span><span></span><span></span><span></span>
+      <small>Scroll</small>
+    </div>
+  </div>
+</section>
+
+<div class="strip" aria-hidden="true">
+  <div class="strip-inner" id="strip"></div>
+</div>
+
+<section class="collect" id="collect" aria-labelledby="collect-title">
+  <div class="collect-wrap">
+    <p class="eyebrow"><i></i>Before the doors open</p>
+    <h2 id="collect-title">Collect the <b>ideas.</b></h2>
+
+    <div class="scene" id="scene">
+      <button type="button" class="orb" style="--x:15%;--y:32%;--d:0s" aria-label="Pick up Curiosity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21h6M10 17.5h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>
+      </button>
+      <button type="button" class="orb" style="--x:42%;--y:72%;--d:-1s" aria-label="Pick up Courage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>
+      </button>
+      <button type="button" class="orb" style="--x:72%;--y:30%;--d:-2s" aria-label="Pick up Community">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M2.5 20c0-3.3 2.5-5.5 5.5-5.5s5.5 2.2 5.5 5.5M15 15c2.8-.5 6 .9 6.5 4.5"/></svg>
+      </button>
+      <button type="button" class="orb" style="--x:88%;--y:70%;--d:-3s" aria-label="Pick up Story">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5C6.5 4 9.5 4 12 5.5c2.5-1.5 5.5-1.5 8 0V19c-2.5-1.5-5.5-1.5-8 0-2.5-1.5-5.5-1.5-8 0z"/><path d="M12 5.5V19"/></svg>
+      </button>
+    </div>
+
+    <p class="dialogue" id="dialogue" aria-live="polite">The stage is quiet. Something is floating nearby.</p>
+
+    <p class="inv-label">Inventory <span id="inv-count">0/4</span></p>
+    <ul class="inv" id="inv">
+      <li class="slot"></li><li class="slot"></li><li class="slot"></li><li class="slot"></li>
+    </ul>
+
+    <div id="combine-row">
+      <button type="button" class="cta block" id="combine" disabled>Collect all four ideas to combine them</button>
+    </div>
+
+    <div class="reveal" id="reveal" hidden>
+      <p class="tag">Idea unlocked</p>
+      <p class="big">Ideas worth spreading.</p>
+      <p class="sub">Curiosity, courage, community and story. Bring yours to the stage.</p>
+      <div class="reveal-actions">
+        <a class="cta" href="#register">Register interest</a>
+        <button type="button" class="ghost" id="again">Play again</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="register">
+  <span>This independent TEDx event is operated under license from TED.</span>
+  <span>Hero section prototype</span>
+</footer>
+
+<script>
+(function () {
+  var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Sample date. Replace with the real event date, e.g. '2026-12-13T10:00:00+05:30'.
+  var EVENT = new Date('2026-12-13T10:00:00+05:30');
+
+  var track = document.getElementById('track');
+  var stage = document.getElementById('stage');
+  var canvas = document.getElementById('grid');
+  var beam = document.getElementById('beam');
+  var ctx = canvas.getContext('2d');
+  var words = Array.prototype.slice.call(document.querySelectorAll('.w'));
+  var ticks = Array.prototype.slice.call(document.querySelectorAll('.progress span'));
+  var N = words.length;
+
+  // marquee strip
+  var items = ['Ideas worth spreading', 'Talks', 'Performances', 'Conversations', 'Pune', '2026'];
+  var html = '';
+  for (var rep = 0; rep < 4; rep++) {
+    items.forEach(function (t) { html += '<span>' + t + '</span><span class="x">&times;</span>'; });
+  }
+  document.getElementById('strip').innerHTML = html;
+
+  // word roll
+  var step = -1, auto = !REDUCED, autoStep = 0;
+  // the rolling word waits until the intro has finished
+  var introDone = REDUCED || !window.gsap;
+  document.addEventListener('intro:done', function () { introDone = true; });
+  function setStep(n) {
+    if (n === step) return;
+    step = n;
+    words.forEach(function (w, i) { w.classList.toggle('on', i === n); w.classList.toggle('past', i < n); });
+    ticks.forEach(function (t, i) { t.classList.toggle('on', i <= n); });
+  }
+  function onScroll() {
+    var r = track.getBoundingClientRect();
+    var range = track.offsetHeight - stage.offsetHeight;
+    var p = range > 0 ? Math.min(1, Math.max(0, -r.top / range)) : 0;
+    if (p > 0.001) auto = false;
+    setStep(auto ? autoStep : Math.round(p * (N - 1)));
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  if (!REDUCED) {
+    setInterval(function () {
+      if (!auto || !introDone) return;
+      autoStep = (autoStep + 1) % N;
+      setStep(autoStep);
+    }, 2600);
+  }
+  setStep(0);
+
+  // canvas sizing
+  var W = 0, H = 0, dpr = 1, visible = true;
+  function resize() {
+    var r = stage.getBoundingClientRect();
+    W = r.width; H = r.height;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stage.style.setProperty('--r', Math.max(260, Math.min(520, Math.min(W, H) * 0.62)) + 'px');
+    if (REDUCED) draw(performance.now());
+  }
+  window.addEventListener('resize', resize);
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(stage);
+  }
+
+  // pointer + ripples
+  var px = 0, py = 0, lastPtr = -1e9, lastX = -999, lastY = -999, ripples = [], lastAmbient = 0;
+  var energy = 0.07, confetti = [], lastDraw = 0;
+  var COLORS = ['#e62b1e', '#f5f1ee', '#ff7a5c', '#ffffff'];
+  // applause: confetti that falls with gravity (rain = from the top of the stage)
+  window.tedxConfetti = function (x, y, n, rain) {
+    for (var i = 0; i < n && confetti.length < 420; i++) {
+      confetti.push({
+        x: rain ? Math.random() * W : x, y: rain ? -10 : y,
+        vx: rain ? (Math.random() - 0.5) * 120 : (Math.random() - 0.5) * 560,
+        vy: rain ? Math.random() * 120 : -120 - Math.random() * 480,
+        rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 14, s: 3 + Math.random() * 4,
+        color: COLORS[(Math.random() * COLORS.length) | 0], life: 1.2 + Math.random() * 1.2
+      });
+    }
+  };
+  // the voice waveform reacts to this energy level
+  window.tedxSurge = function (a) { energy = Math.min(1.4, energy + a); };
+  var SPEED = 300, MAXR = 340, BAND = 26;
+  function emit(x, y, now) { if (ripples.length < 12) ripples.push({ x: x, y: y, t0: now }); }
+  window.tedxRipple = function (x, y) { emit(x, y, performance.now()); };
+  stage.addEventListener('pointermove', function (e) {
+    var r = stage.getBoundingClientRect();
+    px = e.clientX - r.left; py = e.clientY - r.top;
+    var now = performance.now();
+    lastPtr = now;
+    energy = Math.min(1.4, energy + Math.min(0.012 * Math.hypot(e.movementX || 0, e.movementY || 0), 0.3));
+    var dx = px - lastX, dy = py - lastY;
+    if (dx * dx + dy * dy > 6400) { lastX = px; lastY = py; emit(px, py, now); }
+  });
+  stage.addEventListener('pointerdown', function (e) {
+    var r = stage.getBoundingClientRect();
+    px = e.clientX - r.left; py = e.clientY - r.top;
+    lastPtr = performance.now();
+    emit(px, py, lastPtr);
+    if (!(e.target.closest && e.target.closest('a, button'))) {
+      window.tedxConfetti(px, py, 36);
+      energy = Math.min(1.4, energy + 0.6);
+    }
+  });
+
+  var mx = 0, my = 0, started = false;
+  function draw(now) {
+    ctx.clearRect(0, 0, W, H);
+    var gap = W < 600 ? 24 : 30;
+    var cols = Math.ceil(W / gap) + 1, rows = Math.ceil(H / gap) + 1;
+    for (var k = ripples.length - 1; k >= 0; k--) {
+      var rp = ripples[k];
+      rp.r = (now - rp.t0) / 1000 * SPEED;
+      rp.life = 1 - rp.r / MAXR;
+      if (rp.life <= 0) ripples.splice(k, 1);
+    }
+    for (var j = 0; j < rows; j++) {
+      for (var i = 0; i < cols; i++) {
+        var x = i * gap + gap / 2, y = j * gap + gap / 2, inten = 0, ox = 0, oy = 0;
+        for (var q = 0; q < ripples.length; q++) {
+          var rr = ripples[q];
+          var ddx = x - rr.x, ddy = y - rr.y;
+          var d = Math.sqrt(ddx * ddx + ddy * ddy);
+          var e = Math.abs(d - rr.r);
+          if (e < BAND) {
+            var s = (1 - e / BAND) * rr.life;
+            inten += s;
+            if (d > 0) { ox += ddx / d * s * 7; oy += ddy / d * s * 7; }
+          }
+        }
+        if (inten > 1) inten = 1;
+        // magnetic ideas: dots lean toward the spotlight
+        var pull = 0;
+        if (!REDUCED) {
+          var mdx = mx - x, mdy = my - y, md = Math.sqrt(mdx * mdx + mdy * mdy);
+          if (md < 250 && md > 0) { pull = 1 - md / 250; pull *= pull; ox += mdx / md * pull * 16; oy += mdy / md * pull * 16; }
+        }
+        ctx.fillStyle = inten > 0.02 ? 'rgba(230,43,30,' + (0.2 + 0.8 * inten).toFixed(2) + ')'
+          : (pull > 0.04 ? 'rgba(255,130,100,' + (0.18 + 0.7 * pull).toFixed(2) + ')' : 'rgba(245,241,238,0.15)');
+        ctx.beginPath();
+        ctx.arc(x + ox, y + oy, 1.1 + inten * 2.6 + pull * 2, 0, 6.2832);
+        ctx.fill();
+      }
+    }
+
+    // live voice waveform along the bottom edge
+    var bars = Math.floor(W / 11), baseY = H - 18, t2 = now / 1000;
+    energy += (0.07 - energy) * 0.04;
+    for (var b = 0; b < bars; b++) {
+      var env = Math.pow(Math.sin(Math.PI * (b + 0.5) / bars), 0.7);
+      var nz = (Math.sin(b * 0.35 + t2 * 3.1) + Math.sin(b * 0.13 - t2 * 2.2) + Math.sin(b * 0.71 + t2 * 5.3) + 3) / 6;
+      var hgt = 3 + 30 * env * nz * Math.min(1.6, energy * 3.2);
+      ctx.fillStyle = 'rgba(230,43,30,' + (0.25 + Math.min(0.6, energy)).toFixed(2) + ')';
+      ctx.fillRect(b * 11 + 3, baseY - hgt / 2, 4, hgt);
+    }
+
+    // applause confetti
+    var dt = lastDraw ? Math.min(0.05, (now - lastDraw) / 1000) : 0.016;
+    lastDraw = now;
+    for (var c = confetti.length - 1; c >= 0; c--) {
+      var pc = confetti[c];
+      pc.vy += 900 * dt; pc.x += pc.vx * dt; pc.y += pc.vy * dt; pc.rot += pc.vr * dt; pc.life -= dt;
+      if (pc.life <= 0 || pc.y > H + 20) { confetti.splice(c, 1); continue; }
+      ctx.save();
+      ctx.translate(pc.x, pc.y);
+      ctx.rotate(pc.rot);
+      ctx.globalAlpha = Math.min(1, pc.life * 1.5);
+      ctx.fillStyle = pc.color;
+      ctx.fillRect(-pc.s, -pc.s * 0.5, pc.s * 2, pc.s);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (!visible) return;
+    var t = now / 1000, tx, ty;
+    if (now - lastPtr < 2500) { tx = px; ty = py; }
+    else {
+      tx = W * 0.38 + Math.cos(t * 0.5) * W * 0.22;
+      ty = H * 0.5 + Math.sin(t * 0.7) * H * 0.16;
+      if (now - lastAmbient > 1900) { lastAmbient = now; emit(mx, my, now); }
+    }
+    if (!started) { mx = tx; my = ty; started = true; }
+    mx += (tx - mx) * 0.08; my += (ty - my) * 0.08;
+    stage.style.setProperty('--mx', mx.toFixed(1) + 'px');
+    stage.style.setProperty('--my', my.toFixed(1) + 'px');
+    // follow-spot: a light cone from the ceiling down to the spotlight
+    var rad = Math.max(60, Math.min(W, H) * 0.12), sx = W * 0.5 + (mx - W * 0.5) * 0.15;
+    beam.style.clipPath = 'polygon(' + (sx - 18).toFixed(1) + 'px 0, ' + (sx + 18).toFixed(1) + 'px 0, ' +
+      (mx + rad).toFixed(1) + 'px ' + (my + 30).toFixed(1) + 'px, ' + (mx - rad).toFixed(1) + 'px ' + (my + 30).toFixed(1) + 'px)';
+    draw(now);
+  }
+
+  // countdown
+  function put(id, v) {
+    var el = document.getElementById(id);
+    if (el.textContent === v) return;
+    el.textContent = v;
+    if (!REDUCED) { el.classList.remove('roll'); void el.offsetWidth; el.classList.add('roll'); }
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function tick() {
+    var ms = EVENT - new Date();
+    if (ms < 0) ms = 0;
+    var s = Math.floor(ms / 1000);
+    put('cd-d', pad(Math.floor(s / 86400)));
+    put('cd-h', pad(Math.floor(s % 86400 / 3600)));
+    put('cd-m', pad(Math.floor(s % 3600 / 60)));
+    put('cd-s', pad(s % 60));
+  }
+  tick(); setInterval(tick, 1000);
+
+  resize();
+  if (REDUCED) {
+    stage.style.setProperty('--mx', (W * 0.38) + 'px');
+    stage.style.setProperty('--my', (H * 0.5) + 'px');
+  } else {
+    requestAnimationFrame(loop);
+  }
+})();
+</script>
+
+<script>
+// Collect the ideas: pick up four floating ideas, then combine them.
+(function () {
+  var IDEAS = [
+    { name: 'Curiosity', look: 'A lightbulb that never quite switches off.' },
+    { name: 'Courage', look: 'A microphone. Somebody has to go first.' },
+    { name: 'Community', look: 'A crowd that leans in to listen.' },
+    { name: 'Story', look: 'A story that changes how you see things.' }
+  ];
+  var IDLE = 'The stage is quiet. Something is floating nearby.';
+
+  var orbs = Array.prototype.slice.call(document.querySelectorAll('#scene .orb'));
+  var slots = Array.prototype.slice.call(document.querySelectorAll('#inv .slot'));
+  var line = document.getElementById('dialogue');
+  var countEl = document.getElementById('inv-count');
+  var combineBtn = document.getElementById('combine');
+  var combineRow = document.getElementById('combine-row');
+  var reveal = document.getElementById('reveal');
+  var again = document.getElementById('again');
+
+  var base = IDLE, collected = 0;
+
+  function say(text) { line.textContent = text; }
+
+  function hint(i) {
+    return function () { if (!orbs[i].classList.contains('gone')) say('Pick up ' + IDEAS[i].name + '.'); };
+  }
+  function restore() { say(base); }
+
+  function collect(i) {
+    var orb = orbs[i];
+    if (orb.classList.contains('gone')) return;
+    orb.classList.add('gone');
+    orb.disabled = true;
+
+    var slot = slots[i];
+    slot.innerHTML = '';
+    var mini = document.createElement('span');
+    mini.className = 'mini';
+    mini.appendChild(orb.querySelector('svg').cloneNode(true));
+    var nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = IDEAS[i].name;
+    slot.appendChild(mini);
+    slot.appendChild(nm);
+    slot.classList.add('full');
+
+    collected++;
+    countEl.textContent = collected + '/' + IDEAS.length;
+    base = IDEAS[i].look + ' Added to your inventory.';
+    say(base);
+    if (collected === IDEAS.length) {
+      combineBtn.disabled = false;
+      combineBtn.textContent = 'Combine all four';
+    }
+  }
+
+  orbs.forEach(function (orb, i) {
+    orb.addEventListener('pointerenter', hint(i));
+    orb.addEventListener('focus', hint(i));
+    orb.addEventListener('pointerleave', restore);
+    orb.addEventListener('blur', restore);
+    orb.addEventListener('click', function () { collect(i); });
+  });
+
+  combineBtn.addEventListener('click', function () {
+    if (combineBtn.disabled) return;
+    combineRow.hidden = true;
+    reveal.hidden = false;
+    base = 'You combine them. It works. This is an idea worth spreading.';
+    say(base);
+  });
+
+  again.addEventListener('click', function () {
+    orbs.forEach(function (orb) { orb.classList.remove('gone'); orb.disabled = false; });
+    slots.forEach(function (slot) { slot.innerHTML = ''; slot.classList.remove('full'); });
+    collected = 0;
+    countEl.textContent = '0/' + IDEAS.length;
+    combineBtn.disabled = true;
+    combineBtn.textContent = 'Collect all four ideas to combine them';
+    combineRow.hidden = false;
+    reveal.hidden = true;
+    base = IDLE;
+    say(base);
+  });
+})();
+</script>
+
+<script>
+// Hero intro, in the order a TEDx talk starts:
+//   curtain up -> a spark of an idea drops onto the dark stage -> the impact
+//   knocks "Small talk" off the headline -> "Ideas" spreads out from the point
+//   of impact -> applause (confetti and a surge in the voice waveform).
+// Afterwards the letters of "Ideas" swell as the cursor passes over them.
+// Needs GSAP; without it (or with reduced motion) the page shows the final headline.
+(function () {
+  var root = document.documentElement;
+  var gs = window.gsap;
+  var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stage = document.getElementById('stage');
+  var main = stage.querySelector('.main');
+  var oldEl = document.getElementById('old');
+  var newEl = document.getElementById('new');
+  var dot = document.getElementById('ideaDot');
+  var ring = document.getElementById('ring');
+  var curL = document.getElementById('curtainL');
+  var curR = document.getElementById('curtainR');
+  var btn = document.getElementById('replay');
+
+  function finish() { document.dispatchEvent(new Event('intro:done')); }
+  if (!gs || REDUCED) {
+    root.classList.remove('js-intro');
+    btn.hidden = true;
+    finish();
+    return;
+  }
+
+  function split(el, text) {
+    el.textContent = '';
+    var letters = [];
+    for (var i = 0; i < text.length; i++) {
+      var s = document.createElement('span');
+      s.className = 'ch';
+      if (text.charAt(i) === ' ') { s.className += ' sp'; s.innerHTML = '&nbsp;'; }
+      else { s.textContent = text.charAt(i); letters.push(s); }
+      el.appendChild(s);
+    }
+    return letters;
+  }
+  var oldLetters = split(oldEl, oldEl.getAttribute('data-text'));
+  var newLetters = split(newEl, newEl.getAttribute('data-text'));
+
+  function center(el) {
+    var r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
+    return { x: r.left - s.left + r.width / 2, y: r.top - s.top + r.height / 2 };
+  }
+  function removeEl(el) { if (el.parentNode) el.parentNode.removeChild(el); }
+  function surge(a) { if (window.tedxSurge) window.tedxSurge(a); }
+
+  function sparks(x, y) {
+    for (var n = 0; n < 14; n++) {
+      var c = document.createElement('i');
+      c.className = 'crumb';
+      stage.appendChild(c);
+      gs.set(c, { x: x, y: y, backgroundColor: n % 2 ? '#e62b1e' : '#f5f1ee', scale: gs.utils.random(0.6, 1.6) });
+      gs.to(c, {
+        x: x + gs.utils.random(-170, 170), y: y + gs.utils.random(-130, 90),
+        rotation: gs.utils.random(-240, 240), opacity: 0, duration: 0.8, ease: 'power2.out',
+        onComplete: removeEl, onCompleteParams: [c]
+      });
+    }
+  }
+
+  function impact(x, y) {
+    sparks(x, y);
+    gs.fromTo(ring,
+      { display: 'block', x: x, y: y, width: 20, height: 20, marginLeft: -10, marginTop: -10, opacity: 1 },
+      { width: 1500, height: 1500, marginLeft: -750, marginTop: -750, opacity: 0, duration: 1, ease: 'power2.out' });
+    if (window.tedxRipple) {
+      window.tedxRipple(x, y);
+      gs.delayedCall(0.18, function () { window.tedxRipple(x, y); });
+      gs.delayedCall(0.36, function () { window.tedxRipple(x, y); });
+    }
+    surge(0.9);
+    gs.fromTo(main, { x: -10 }, { x: 0, duration: 0.55, ease: 'elastic.out(1, 0.25)' });
+  }
+
+  function applause() {
+    if (window.tedxConfetti) window.tedxConfetti(0, 0, 90, true);
+    for (var i = 0; i < 7; i++) gs.delayedCall(i * 0.2, function () { surge(0.55); });
+  }
+
+  // fisheye headline: letters of the new word swell as the cursor passes
+  var fish = false, basePos = [];
+  function fisheye(e) {
+    if (!fish) return;
+    var s = stage.getBoundingClientRect();
+    var px = e.clientX - s.left, py = e.clientY - s.top;
+    newLetters.forEach(function (el, i) {
+      var p = basePos[i];
+      if (!p) return;
+      var f = Math.max(0, 1 - Math.hypot(px - p.x, py - p.y) / 230);
+      gs.to(el, { scale: 1 + f * 0.42, y: -f * 20, rotation: (px - p.x) * f * 0.03, duration: 0.35, ease: 'power3.out', overwrite: 'auto' });
+    });
+  }
+  function relax() {
+    newLetters.forEach(function (el) { gs.to(el, { scale: 1, y: 0, rotation: 0, duration: 0.5, ease: 'power3.out', overwrite: 'auto' }); });
+  }
+  stage.addEventListener('pointermove', fisheye);
+  stage.addEventListener('pointerleave', relax);
+  window.addEventListener('resize', function () { if (fish) basePos = newLetters.map(center); });
+
+  var tl = null;
+  function done() {
+    gs.killTweensOf(ring);
+    dot.style.display = 'none';
+    ring.style.display = 'none';
+    curL.style.display = 'none';
+    curR.style.display = 'none';
+    basePos = newLetters.map(center);
+    fish = true;
+    btn.disabled = false;
+    finish();
+  }
+
+  function play() {
+    if (tl) tl.kill();
+    fish = false;
+    btn.disabled = true;
+    root.classList.add('js-intro');
+
+    gs.set(oldLetters, { clearProps: 'all' });
+    gs.set(newLetters, { clearProps: 'all' });
+    var oldPos = oldLetters.map(center);
+    var newPos = newLetters.map(center);
+    var ix = (oldPos[0].x + oldPos[oldPos.length - 1].x) / 2;
+    var iy = oldPos[0].y;
+    var T = 1.0; // moment of impact, relative to the start of the sequence
+
+    gs.set(newLetters, { opacity: 0 });
+    gs.set(stage, { '--va': 0.6 });
+    gs.set(ring, { display: 'none' });
+    gs.set(dot, { display: 'block', x: ix, y: -40, scaleX: 1, scaleY: 1, opacity: 1 });
+    gs.set([curL, curR], { display: 'block', xPercent: 0 });
+
+    var seq = gs.timeline();
+
+    // 1. the old words flicker like a bad signal
+    seq.to(oldLetters, { opacity: 0.25, duration: 0.06, repeat: 5, yoyo: true, stagger: { each: 0.02, from: 'random' } }, 0);
+
+    // 2. an idea drops from above, stretching as it speeds up
+    seq.to(dot, { y: iy, scaleY: 2.6, scaleX: 0.8, duration: T - 0.45, ease: 'power3.in' }, 0.45);
+
+    // 3. impact: shockwave, sparks, ripples across the grid, surge in the waveform
+    seq.call(impact, [ix, iy], T);
+    seq.set(dot, { display: 'none' }, T);
+    seq.fromTo(stage, { '--va': 0.05 }, { '--va': 0.6, duration: 0.5, ease: 'power2.out', immediateRender: false }, T);
+
+    // 4. the shockwave knocks the old letters away, nearest first
+    oldLetters.forEach(function (el, i) {
+      var dx = oldPos[i].x - ix;
+      seq.to(el, {
+        x: dx * 0.9 + gs.utils.random(-30, 30), y: gs.utils.random(140, 300),
+        rotation: gs.utils.random(-200, 200), opacity: 0, duration: 0.7, ease: 'power2.in'
+      }, T + Math.abs(dx) * 0.0009);
+    });
+
+    // 5. the new word spreads out from the point of impact
+    newLetters.forEach(function (el, i) {
+      var dist = Math.abs(newPos[i].x - ix);
+      seq.fromTo(el,
+        { x: ix - newPos[i].x, y: iy - newPos[i].y, scale: 0.1, rotation: gs.utils.random(-180, 180), opacity: 1 },
+        { x: 0, y: 0, scale: 1, rotation: 0, duration: 0.7, ease: 'back.out(1.8)' },
+        T + 0.15 + dist * 0.0008);
+    });
+
+    // 6. applause, then the house lights come back up
+    seq.call(applause, null, T + 0.9);
+    seq.fromTo(stage, { '--va': 0.6 }, { '--va': 0.84, duration: 1, ease: 'power1.out', immediateRender: false }, T + 1.0);
+
+    // 0. curtain up, then the sequence starts as the curtains clear the stage
+    tl = gs.timeline({ onComplete: done });
+    tl.fromTo(curL, { xPercent: 0 }, { xPercent: -104, duration: 1.2, ease: 'power3.inOut', immediateRender: false }, 0.15);
+    tl.fromTo(curR, { xPercent: 0 }, { xPercent: 104, duration: 1.2, ease: 'power3.inOut', immediateRender: false }, 0.15);
+    tl.add(seq, 0.8);
+  }
+
+  btn.addEventListener('click', play);
+  function go() { setTimeout(play, 700); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
+})();
+</script>
+</body>
+</html>
