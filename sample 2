@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TEDxVIT Pune 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fraunces:ital,wght@0,9..144,400;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #e62b1e;
+    --red-deep: #b91c14;
+    --red-glow: rgba(230, 43, 30, 0.6);
+    --black: #000000;
+    --white: #ffffff;
+    --grey: #888888;
+    --line: rgba(255,255,255,0.10);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    cursor: none;
+  }
+
+  /* ============================================
+     CURSOR — dot + lagging ring
+     ============================================ */
+  .cursor-dot {
+    position: fixed; top: 0; left: 0;
+    width: 6px; height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10001;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 14px var(--red-glow);
+    will-change: transform;
+  }
+  .cursor-ring {
+    position: fixed; top: 0; left: 0;
+    width: 40px; height: 40px;
+    border: 1.5px solid var(--red);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+    transition: width 0.3s var(--ease), height 0.3s var(--ease), border-color 0.3s var(--ease), opacity 0.3s var(--ease);
+    will-change: transform;
+  }
+  .cursor-ring.hover { width: 76px; height: 76px; border-color: var(--white); opacity: 1; }
+
+  /* ============================================
+     HERO
+     ============================================ */
+  .hero {
+    position: relative;
+    width: 100%; height: 100vh;
+    background: var(--black);
+    overflow: hidden;
+  }
+
+  /* Animated grid backdrop */
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 90px 90px;
+    mask-image: radial-gradient(ellipse at 40% 50%, black 10%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 40% 50%, black 10%, transparent 75%);
+    animation: gridPan 40s linear infinite;
+    z-index: 1;
+  }
+  @keyframes gridPan {
+    0%   { background-position: 0 0; }
+    100% { background-position: 90px 90px; }
+  }
+
+  /* Big rotating red ring behind text */
+  .orbit-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 900px; height: 900px;
+    margin-top: -450px; margin-left: -450px;
+    border: 1px dashed rgba(230, 43, 30, 0.18);
+    border-radius: 50%;
+    z-index: 1;
+    pointer-events: none;
+    animation: spin 90s linear infinite;
+  }
+  .orbit-ring:nth-child(2) {
+    width: 620px; height: 620px;
+    margin-top: -310px; margin-left: -310px;
+    border-color: rgba(230, 43, 30, 0.28);
+    border-style: solid;
+    animation-direction: reverse;
+    animation-duration: 60s;
+  }
+  .orbit-ring:nth-child(3) {
+    width: 380px; height: 380px;
+    margin-top: -190px; margin-left: -190px;
+    border-color: rgba(230, 43, 30, 0.45);
+    animation-duration: 40s;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Canvas for particle network */
+  #canvas {
+    position: absolute; inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* ============================================
+     CONTENT
+     ============================================ */
+  .content {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: clamp(24px, 3vw, 48px) clamp(24px, 5vw, 72px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    opacity: 0;
+    animation: fadeIn 0.9s var(--ease) 0.2s forwards;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1rem; font-weight: 700; letter-spacing: -0.02em;
+  }
+  .brand .ted { color: var(--red); }
+  .brand .vit { color: var(--white); }
+  .brand .dot { color: var(--grey); font-weight: 400; margin: 0 4px; }
+  .brand .year { color: var(--grey); font-weight: 400; font-size: 0.85rem; letter-spacing: 0.15em; }
+
+  .nav-links {
+    display: none; gap: 36px; list-style: none;
+    font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .nav-links a {
+    color: var(--grey); text-decoration: none;
+    position: relative; padding: 6px 0;
+    transition: color 0.3s var(--ease);
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; left: 0; bottom: 0;
+    width: 100%; height: 2px;
+    background: var(--red);
+    transform: scaleX(0); transform-origin: right;
+    transition: transform 0.4s var(--ease);
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+  @media (min-width: 900px) { .nav-links { display: flex; } }
+
+  /* ============ STAGE ============ */
+  .stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 0;
+    max-width: 900px;
+  }
+
+  /* Kicker */
+  .kicker {
+    display: inline-flex; align-items: center; gap: 14px;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.42em; text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeUp 0.8s var(--ease) 0.4s forwards;
+  }
+  .kicker::before {
+    content: '';
+    width: 0; height: 1px;
+    background: var(--red);
+    animation: lineGrow 0.9s var(--ease) 0.5s forwards;
+  }
+  @keyframes lineGrow {
+    to { width: 40px; }
+  }
+  .kicker .blink {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: blink 1.6s ease-in-out infinite;
+    box-shadow: 0 0 12px var(--red-glow);
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.2; transform: scale(0.6); }
+  }
+
+  /* ============ HEADLINE ============ */
+  .headline {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.8rem, 7.5vw, 7rem);
+    line-height: 0.92;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 36px;
+  }
+
+  .headline .line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.04em;
+  }
+  .headline .line > span {
+    display: inline-block;
+    transform: translateY(105%);
+    animation: lineRise 1.2s var(--expo) forwards;
+    will-change: transform;
+  }
+  .headline .line:nth-child(1) > span { animation-delay: 0.6s; }
+  .headline .line:nth-child(2) > span { animation-delay: 0.75s; }
+  .headline .line:nth-child(3) > span { animation-delay: 0.9s; }
+
+  @keyframes lineRise {
+    to { transform: translateY(0); }
+  }
+
+  /* Outline word with glitch on hover */
+  .headline .outline {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--red);
+    text-stroke: 2px var(--red);
+    position: relative;
+    cursor: none;
+    transition: color 0.35s var(--ease);
+    display: inline-block;
+  }
+  .headline .outline:hover {
+    color: var(--red);
+    animation: glitch 0.35s steps(2) infinite;
+  }
+  @keyframes glitch {
+    0%   { transform: translate(0) skewX(0); }
+    20%  { transform: translate(-3px, 1px) skewX(-3deg); }
+    40%  { transform: translate(3px, -1px) skewX(3deg); }
+    60%  { transform: translate(-2px, 2px) skewX(-2deg); }
+    80%  { transform: translate(2px, -2px) skewX(2deg); }
+    100% { transform: translate(0) skewX(0); }
+  }
+
+  /* Accent word with underline sweep */
+  .headline .accent {
+    color: var(--red);
+    position: relative;
+    display: inline-block;
+  }
+  .headline .accent::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0.05em;
+    height: 5px;
+    background: var(--red);
+    transform: scaleX(0); transform-origin: left;
+    animation: underlineSweep 1s var(--expo) 1.9s forwards;
+  }
+  @keyframes underlineSweep {
+    to { transform: scaleX(1); }
+  }
+
+  /* Decorative caret that types after the headline */
+  .caret {
+    display: inline-block;
+    width: 0.08em; height: 0.9em;
+    background: var(--red);
+    margin-left: 0.08em;
+    vertical-align: -0.06em;
+    animation: caretBlink 1s steps(1) infinite;
+    box-shadow: 0 0 14px var(--red-glow);
+  }
+  @keyframes caretBlink {
+    50% { opacity: 0; }
+  }
+
+  /* Sub copy */
+  .sub {
+    font-size: clamp(0.95rem, 1.15vw, 1.1rem);
+    line-height: 1.65;
+    color: var(--grey);
+    max-width: 520px;
+    margin-bottom: 44px;
+    opacity: 0;
+    animation: fadeUp 0.9s var(--ease) 1.4s forwards;
+  }
+  .sub strong { color: var(--white); font-weight: 500; }
+
+  /* ============ CTAs ============ */
+  .ctas {
+    display: flex; flex-wrap: wrap; gap: 20px; align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.9s var(--ease) 1.6s forwards;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 18px 34px;
+    font-size: 0.76rem; font-weight: 700;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    text-decoration: none;
+    position: relative; overflow: hidden;
+    transition: transform 0.4s var(--spring);
+    will-change: transform;
+    cursor: none;
+  }
+
+  .btn--primary {
+    background: var(--red);
+    color: var(--white);
+    border: 2px solid var(--red);
+    box-shadow: 0 0 0 0 var(--red-glow);
+  }
+  .btn--primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--black);
+    transform: translateX(-101%);
+    transition: transform 0.55s var(--ease);
+    z-index: 0;
+  }
+  .btn--primary > * { position: relative; z-index: 1; }
+  .btn--primary:hover::before { transform: translateX(0); }
+  .btn--primary:hover {
+    box-shadow: 0 0 32px 4px var(--red-glow);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    color: var(--white);
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+  .btn--ghost::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--white);
+    transform: translateY(101%);
+    transition: transform 0.5s var(--ease);
+    z-index: 0;
+  }
+  .btn--ghost > * {
+    position: relative; z-index: 1;
+    transition: color 0.4s var(--ease);
+  }
+  .btn--ghost:hover::before { transform: translateY(0); }
+  .btn--ghost:hover > * { color: var(--black); }
+
+  .btn .arrow {
+    display: inline-block;
+    transition: transform 0.4s var(--ease);
+  }
+  .btn:hover .arrow { transform: translateX(6px); }
+
+  /* ============ BOTTOM BAR ============ */
+  .bottombar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 0.68rem; font-weight: 500;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--grey);
+    opacity: 0;
+    animation: fadeIn 1s var(--ease) 2s forwards;
+    gap: 20px; flex-wrap: wrap;
+  }
+  .bottombar strong { color: var(--red); font-weight: 700; }
+
+  .scroll-cue {
+    display: inline-flex; align-items: center; gap: 10px;
+    color: var(--grey); text-decoration: none;
+    transition: color 0.3s var(--ease);
+  }
+  .scroll-cue:hover { color: var(--red); }
+  .scroll-cue .chev {
+    display: inline-block;
+    animation: chevPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes chevPulse {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50%      { transform: translateY(5px); opacity: 1; }
+  }
+
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ MARQUEE STRIP ============ */
+  .marquee {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 44px;
+    background: var(--red);
+    color: var(--white);
+    overflow: hidden;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    transform: translateY(100%);
+    animation: marqueeIn 0.9s var(--ease) 2.3s forwards;
+  }
+  @keyframes marqueeIn {
+    to { transform: translateY(0); }
+  }
+  .marquee-track {
+    display: flex; gap: 40px;
+    white-space: nowrap;
+    animation: marquee 30s linear infinite;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.35em; text-transform: uppercase;
+    padding-left: 40px;
+  }
+  .marquee-track .sep { opacity: 0.45; }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 640px) {
+    body { cursor: auto; }
+    .cursor-dot, .cursor-ring { display: none; }
+    .headline { font-size: clamp(2rem, 11vw, 3.4rem); }
+    .marquee { height: 36px; }
+    .marquee-track { font-size: 0.62rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<section class="hero">
+
+  <div class="grid"></div>
+  <div class="orbit-ring"></div>
+  <div class="orbit-ring"></div>
+  <div class="orbit-ring"></div>
+  <canvas id="canvas"></canvas>
+
+  <div class="content">
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="ted">TEDx</span><span class="vit">VIT</span>
+        <span class="dot">·</span>
+        <span class="year">PUNE 2026</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#speakers">Speakers</a></li>
+        <li><a href="#schedule">Schedule</a></li>
+        <li><a href="#tickets">Tickets</a></li>
+      </ul>
+    </header>
+
+    <div class="stage">
+      <div class="kicker">
+        <span class="blink"></span>
+        Edition 2026 · Pune
+      </div>
+
+      <h1 class="headline">
+        <span class="line"><span>Ideas that</span></span>
+        <span class="line"><span>refuse to <span class="outline" data-magnetic>stay</span></span></span>
+        <span class="line"><span><span class="accent">silent.</span><span class="caret"></span></span></span>
+      </h1>
+
+      <p class="sub">
+        Six speakers. One stage. <strong>An afternoon in Pune</strong> that will
+        change how you think — long after the lights go down.
+      </p>
+
+      <div class="ctas">
+        <a href="#tickets" class="btn btn--primary" data-magnetic>
+          <span>Get Tickets</span>
+          <span class="arrow">→</span>
+        </a>
+        <a href="#speakers" class="btn btn--ghost" data-magnetic>
+          <span>Meet Speakers</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <footer class="bottombar">
+      <div>This independent TEDx event is operated under license from TED.</div>
+      <a href="#about" class="scroll-cue">
+        <span>Scroll</span>
+        <span class="chev">↓</span>
+      </a>
+    </footer>
+
+  </div>
+
+  <div class="marquee">
+    <div class="marquee-track">
+      <span>Ideas Worth Spreading</span><span class="sep">●</span>
+      <span>TEDxVIT Pune 2026</span><span class="sep">●</span>
+      <span>x = independently organized TED event</span><span class="sep">●</span>
+      <span>March · Pune</span><span class="sep">●</span>
+      <span>Ideas Worth Spreading</span><span class="sep">●</span>
+      <span>TEDxVIT Pune 2026</span><span class="sep">●</span>
+      <span>x = independently organized TED event</span><span class="sep">●</span>
+      <span>March · Pune</span><span class="sep">●</span>
+    </div>
+  </div>
+
+</section>
+
+<script>
+/* ==========================================================
+   1. CUSTOM CURSOR — dot + lagging ring + hover state
+   ========================================================== */
+const dot = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+const isTouch = matchMedia('(hover: none)').matches;
+
+if (!isTouch) {
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
+  });
+
+  (function tick() {
+    rx += (mx - rx) * 0.18;
+    ry += (my - ry) * 0.18;
+    ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
+    requestAnimationFrame(tick);
+  })();
+
+  document.querySelectorAll('a, button, [data-magnetic], .outline').forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('hover'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+  });
+}
+
+/* ==========================================================
+   2. CLICK RIPPLE — red circle explodes on click
+   ========================================================== */
+if (!isTouch) {
+  document.addEventListener('mousedown', (e) => {
+    const r = document.createElement('div');
+    r.style.cssText = `
+      position: fixed;
+      left: ${e.clientX}px; top: ${e.clientY}px;
+      width: 12px; height: 12px;
+      background: var(--red);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none; z-index: 9999;
+      box-shadow: 0 0 40px var(--red-glow);
+    `;
+    document.body.appendChild(r);
+    r.animate(
+      [
+        { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+        { transform: 'translate(-50%, -50%) scale(16)', opacity: 0 }
+      ],
+      { duration: 700, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+    ).onfinish = () => r.remove();
+  });
+}
+
+/* ==========================================================
+   3. MAGNETIC ELEMENTS
+   ========================================================== */
+document.querySelectorAll('[data-magnetic]').forEach(el => {
+  el.addEventListener('mousemove', (e) => {
+    const r = el.getBoundingClientRect();
+    const x = e.clientX - r.left - r.width / 2;
+    const y = e.clientY - r.top - r.height / 2;
+    el.style.transform = `translate(${x * 0.25}px, ${y * 0.3}px)`;
+  });
+  el.addEventListener('mouseleave', () => {
+    el.style.transform = 'translate(0, 0)';
+  });
+});
+
+/* ==========================================================
+   4. PARTICLE NETWORK CANVAS
+      Nodes float, connect with red lines when near.
+      Nodes also repel from the cursor.
+   ========================================================== */
+(function particleNetwork() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, DPR;
+  let nodes = [];
+  const NODE_COUNT = 70;
+  const MAX_DIST = 160;
+  const CURSOR_RADIUS = 130;
+
+  let mouseX = -9999, mouseY = -9999;
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.width  = innerWidth  * DPR;
+    H = canvas.height = innerHeight * DPR;
+    canvas.style.width  = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    ctx.scale(1, 1);
+  }
+
+  function seed() {
+    nodes = [];
+    for (let i = 0; i < NODE_COUNT; i++) {
+      nodes.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.35 * DPR,
+        vy: (Math.random() - 0.5) * 0.35 * DPR,
+        r: (1 + Math.random() * 1.6) * DPR
+      });
+    }
+  }
+
+  addEventListener('resize', () => { resize(); seed(); });
+  addEventListener('mousemove', (e) => {
+    mouseX = e.clientX * DPR;
+    mouseY = e.clientY * DPR;
+  });
+  addEventListener('mouseleave', () => { mouseX = -9999; mouseY = -9999; });
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Update
+    for (const n of nodes) {
+      n.x += n.vx;
+      n.y += n.vy;
+
+      // Bounce
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
+
+      // Cursor repulsion
+      const dx = n.x - mouseX;
+      const dy = n.y - mouseY;
+      const d2 = dx * dx + dy * dy;
+      const R = CURSOR_RADIUS * DPR;
+      if (d2 < R * R) {
+        const d = Math.sqrt(d2) || 1;
+        const force = (R - d) / R;
+        n.x += (dx / d) * force * 3 * DPR;
+        n.y += (dy / d) * force * 3 * DPR;
+      }
+    }
+
+    // Connections
+    for (let i = 0; i < nodes.length; i++) {
+      const a = nodes[i];
+      for (let j = i + 1; j < nodes.length; j++) {
+        const b = nodes[j];
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const d = Math.hypot(dx, dy);
+        const lim = MAX_DIST * DPR;
+        if (d < lim) {
+          const alpha = (1 - d / lim) * 0.45;
+          ctx.strokeStyle = `rgba(230, 43, 30, ${alpha})`;
+          ctx.lineWidth = 0.6 * DPR;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Nodes
+    for (const n of nodes) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(230, 43, 30, 0.9)';
+      ctx.shadowColor = 'rgba(230, 43, 30, 0.9)';
+      ctx.shadowBlur = 8 * DPR;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  resize(); seed(); frame();
+})();
+
+/* ==========================================================
+   5. SMOOTH SCROLL FOR ANCHORS
+   ========================================================== */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', (e) => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+</script>
+
+</body>
+</html>
